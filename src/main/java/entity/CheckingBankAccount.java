@@ -3,7 +3,6 @@ package entity;
 import java.math.BigDecimal;
 
 public class CheckingBankAccount extends BankAccount {
-
     private BigDecimal balanceOverdraftLimit = BigDecimal.ZERO;
 
     public CheckingBankAccount(Long accountID, Owner owner, BigDecimal overdraftLimit) {

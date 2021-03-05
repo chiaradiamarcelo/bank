@@ -3,57 +3,75 @@ package usecase.transfer;
 import java.math.BigDecimal;
 
 import entity.CheckingBankAccount;
-import gateway.AccountLocker;
-import gateway.BankAccountRepository;
-import gateway.TransactionManager;
+import gateway.*;
 import usecase.exception.BankAccountNotFoundException;
 import usecase.exception.InsufficientFundsException;
 
 public class TransferInteractor implements TransferUseCase {
+    private final BankAccountLocker accountLocker;
+    private final BankAccountRepository<CheckingBankAccount> bankAccountRepository;
+    private final TransactionManager transactionManager;
 
-    private AccountLocker accountLocker;
-    private BankAccountRepository<CheckingBankAccount> bankAccountRepository;
-    private TransactionManager transactionManager;
-
-    public TransferInteractor(AccountLocker accountLocker,
-            BankAccountRepository<CheckingBankAccount> bankAccountRepository, TransactionManager transactionManager) {
-        super();
+    public TransferInteractor(final BankAccountLocker accountLocker,
+            final BankAccountRepository<CheckingBankAccount> bankAccountRepository,
+            final TransactionManager transactionManager) {
         this.accountLocker = accountLocker;
         this.bankAccountRepository = bankAccountRepository;
         this.transactionManager = transactionManager;
     }
 
     @Override
-    public void transfer(Long originAccountID, Long destinationAccountID, BigDecimal amount)
-        throws BankAccountNotFoundException, InsufficientFundsException {
-        this.transactionManager.beginTransaction();
+    public void transfer(final Long originAccountID, final Long destinationAccountID, final BigDecimal amount)
+            throws BankAccountNotFoundException, InsufficientFundsException {
+        this.beginTransaction();
         try {
-            CheckingBankAccount originBankAccount = this.bankAccountRepository.getByAccountID(originAccountID)
-                    .orElseThrow(() -> new BankAccountNotFoundException(originAccountID));
-            CheckingBankAccount destinationBankAccount = this.bankAccountRepository.getByAccountID(destinationAccountID)
-                    .orElseThrow(() -> new BankAccountNotFoundException(destinationAccountID));
-
-            this.accountLocker.lockByAccountID(Math.min(originAccountID, destinationAccountID));
-            this.accountLocker.lockByAccountID(Math.max(originAccountID, destinationAccountID));
-            try {
-                if (!originBankAccount.mayWithdraw(amount)) {
-                    throw new InsufficientFundsException(originAccountID);
-                }
-                originBankAccount.withdraw(amount);
-                destinationBankAccount.deposit(amount);
-                this.bankAccountRepository.save(originBankAccount);
-                this.bankAccountRepository.save(destinationBankAccount);
-                this.transactionManager.commitTransaction();
-            }
-            finally {
-                this.accountLocker.unlockByAccountID(Math.max(originAccountID, destinationAccountID));
-                this.accountLocker.unlockByAccountID(Math.min(originAccountID, destinationAccountID));
-            }
-        }
-        catch (Exception e) {
-            this.transactionManager.rollbackTransaction();
+            this.transferBetween(originAccountID, destinationAccountID, amount);
+        } catch (final Exception e) {
+            this.rollbackTransaction();
             throw e;
         }
     }
 
+    private void beginTransaction() {
+        this.transactionManager.beginTransaction();
+    }
+
+    private void transferBetween(final Long originAccountID, final Long destinationAccountID, final BigDecimal amount)
+            throws BankAccountNotFoundException, InsufficientFundsException {
+        final CheckingBankAccount originBankAccount = getBankAccount(originAccountID);
+        final CheckingBankAccount destinationBankAccount = getBankAccount(destinationAccountID);
+
+        this.lockBankAccount(Math.min(originAccountID, destinationAccountID));
+        this.lockBankAccount(Math.max(originAccountID, destinationAccountID));
+        try {
+            if (!originBankAccount.mayWithdraw(amount)) {
+                throw new InsufficientFundsException(originAccountID);
+            }
+            originBankAccount.withdraw(amount);
+            destinationBankAccount.deposit(amount);
+            this.bankAccountRepository.save(originBankAccount);
+            this.bankAccountRepository.save(destinationBankAccount);
+            this.transactionManager.commitTransaction();
+        } finally {
+            this.unlockBankAccount(Math.max(originAccountID, destinationAccountID));
+            this.unlockBankAccount(Math.min(originAccountID, destinationAccountID));
+        }
+    }
+
+    private CheckingBankAccount getBankAccount(final Long originAccountID) throws BankAccountNotFoundException {
+        return this.bankAccountRepository.getByAccountID(originAccountID)
+                .orElseThrow(() -> new BankAccountNotFoundException(originAccountID));
+    }
+
+    private void lockBankAccount(final Long accountID) {
+        this.accountLocker.lockBankAccountByID(accountID);
+    }
+
+    private void unlockBankAccount(final Long accountID) {
+        this.accountLocker.unlockBankAccountByID(accountID);
+    }
+
+    private void rollbackTransaction() {
+        this.transactionManager.rollbackTransaction();
+    }
 }

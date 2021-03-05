@@ -3,16 +3,15 @@ package entity;
 import java.math.BigDecimal;
 
 public class SavingsBankAccount extends BankAccount {
-
     private long interestRate = 0L;
 
-    public SavingsBankAccount(Long accountID, Owner owner, long interestRate) {
+    public SavingsBankAccount(final Long accountID, final Owner owner, final long interestRate) {
         super(accountID, owner);
         this.interestRate = interestRate;
     }
 
     @Override
-    public boolean mayWithdraw(BigDecimal amount) {
+    public boolean mayWithdraw(final BigDecimal amount) {
         return this.balance.compareTo(amount) >= 0;
     }
 
@@ -23,6 +22,6 @@ public class SavingsBankAccount extends BankAccount {
 
     @Override
     public String toString() {
-        return "SavingsBankAccount [interestRate=" + interestRate + "]";
+        return "SavingsBankAccount [interestRate=" + this.interestRate + "]";
     }
 }

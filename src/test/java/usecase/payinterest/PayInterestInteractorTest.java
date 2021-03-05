@@ -6,38 +6,35 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-
 import java.math.BigDecimal;
 import java.util.Optional;
 
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
 import entity.Owner;
 import entity.SavingsBankAccount;
-import gateway.AccountLocker;
-import gateway.BankAccountRepository;
-import gateway.TransactionManager;
+import gateway.*;
 import usecase.exception.BankAccountNotFoundException;
 
 public class PayInterestInteractorTest {
-
     @SuppressWarnings("unchecked")
-    private BankAccountRepository<SavingsBankAccount> bankAccountRepository = Mockito.mock(BankAccountRepository.class);
-    private AccountLocker accountLocker = Mockito.mock(AccountLocker.class);
-    private TransactionManager transactionManager = Mockito.mock(TransactionManager.class);
+    private final BankAccountRepository<SavingsBankAccount> bankAccountRepository = Mockito
+            .mock(BankAccountRepository.class);
+    private final BankAccountLocker bankAccountLocker = Mockito.mock(BankAccountLocker.class);
+    private final TransactionManager transactionManager = Mockito.mock(TransactionManager.class);
 
-    private PayInterestInteractor payInterestService =
-            new PayInterestInteractor(this.accountLocker, this.bankAccountRepository, this.transactionManager);
+    private final PayInterestInteractor payInterestService = new PayInterestInteractor(this.bankAccountLocker,
+            this.bankAccountRepository, this.transactionManager);
 
     @Test
-    void payInterestSuccess_With_Positive_Balance_And_Positive_Interest_Rate_In_Bank_Account()
-        throws BankAccountNotFoundException {
-        long accountID = 1L;
-        long interestRate = 10L;
-        BigDecimal amount = BigDecimal.valueOf(100);
+    void payInterestWithPositiveBalanceAndPositiveInterestRateInBankAccount() throws BankAccountNotFoundException {
+        final long accountID = 1L;
+        final long interestRate = 10L;
+        final BigDecimal amount = BigDecimal.valueOf(100);
 
-        SavingsBankAccount bankAccount =
-                new SavingsBankAccount(accountID, new Owner(1L, "Marcelo", "Chiaradia"), interestRate);
+        final SavingsBankAccount bankAccount = new SavingsBankAccount(accountID, new Owner(1L, "Marcelo", "Chiaradia"),
+                interestRate);
         bankAccount.deposit(amount);
         assertEquals(bankAccount.getBalance(), amount);
 
@@ -46,32 +43,31 @@ public class PayInterestInteractorTest {
         this.payInterestService.payInterest(accountID);
 
         then(this.transactionManager).should().beginTransaction();
-        then(this.accountLocker).should().lockByAccountID(eq(accountID));
+        then(this.bankAccountLocker).should().lockBankAccountByID(eq(accountID));
         then(this.bankAccountRepository).should().save(eq(bankAccount));
-        then(this.accountLocker).should().unlockByAccountID(eq(accountID));
+        then(this.bankAccountLocker).should().unlockBankAccountByID(eq(accountID));
         then(this.transactionManager).should().commitTransaction();
 
         // interestRate * balance / 100
-        BigDecimal interest = BigDecimal.valueOf(interestRate).multiply(amount).divide(BigDecimal.valueOf(100));
+        final BigDecimal interest = BigDecimal.valueOf(interestRate).multiply(amount).divide(BigDecimal.valueOf(100));
         assertEquals(bankAccount.getBalance(), amount.add(interest));
     }
 
     @Test
-    void payInterestSuccess_With_No_Balance_In_Bank_Account() throws BankAccountNotFoundException {
-        long accountID = 1L;
-        long interestRate = 10L;
+    void payInterestWithNoBalanceInBankAccount() throws BankAccountNotFoundException {
+        final long accountID = 1L;
+        final long interestRate = 10L;
 
-        SavingsBankAccount bankAccount =
-                new SavingsBankAccount(accountID, new Owner(1L, "Marcelo", "Chiaradia"), interestRate);
+        final SavingsBankAccount bankAccount = new SavingsBankAccount(accountID, new Owner(1L, "Marcelo", "Chiaradia"),
+                interestRate);
         assertEquals(bankAccount.getBalance(), BigDecimal.ZERO);
 
         given(this.bankAccountRepository.getByAccountID(eq(accountID))).willReturn(Optional.of(bankAccount));
 
         this.payInterestService.payInterest(accountID);
 
-
-        then(this.accountLocker).should().lockByAccountID(eq(accountID));
-        then(this.accountLocker).should().unlockByAccountID(eq(accountID));
+        then(this.bankAccountLocker).should().lockBankAccountByID(eq(accountID));
+        then(this.bankAccountLocker).should().unlockBankAccountByID(eq(accountID));
         then(this.bankAccountRepository).should().save(eq(bankAccount));
         then(this.transactionManager).should().beginTransaction();
         then(this.transactionManager).should().commitTransaction();
@@ -80,8 +76,8 @@ public class PayInterestInteractorTest {
     }
 
     @Test
-    void payInterestFailed_Bank_Account_Not_Found() {
-        long accountID = 1L;
+    void payInterestBankAccountNotFound() {
+        final long accountID = 1L;
 
         given(this.bankAccountRepository.getByAccountID(eq(accountID))).willReturn(Optional.empty());
 

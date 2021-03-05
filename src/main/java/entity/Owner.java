@@ -1,33 +1,31 @@
 package entity;
 
 public class Owner {
+    private final Long ownerID;
+    private final String name;
+    private final String lastName;
 
-    private Long ownerID;
-    private String name;
-    private String lastName;
-
-    public Owner(Long ownerID, String name, String lastName) {
-        super();
+    public Owner(final Long ownerID, final String name, final String lastName) {
         this.ownerID = ownerID;
         this.name = name;
         this.lastName = lastName;
     }
 
     public Long getOwnerID() {
-        return ownerID;
+        return this.ownerID;
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public String getLastName() {
-        return lastName;
+        return this.lastName;
     }
 
     @Override
     public String toString() {
-        return "Owner [ownerID=" + ownerID + ", name=" + name + ", lastName=" + lastName + "]";
+        return "Owner [ownerID=" + this.ownerID + ", name=" + this.name + ", lastName=" + this.lastName + "]";
     }
 
 }
