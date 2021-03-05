@@ -27,5 +27,4 @@ public class Owner {
     public String toString() {
         return "Owner [ownerID=" + this.ownerID + ", name=" + this.name + ", lastName=" + this.lastName + "]";
     }
-
 }

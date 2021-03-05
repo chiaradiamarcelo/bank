@@ -15,6 +15,9 @@ public abstract class BankAccount {
     }
 
     public void deposit(final BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Attempt to deposit a negative amount in bank account occurred");
+        }
         this.balance = this.balance.add(amount);
     }
 

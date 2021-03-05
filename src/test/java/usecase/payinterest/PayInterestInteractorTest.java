@@ -23,7 +23,6 @@ public class PayInterestInteractorTest {
             .mock(BankAccountRepository.class);
     private final BankAccountLocker bankAccountLocker = Mockito.mock(BankAccountLocker.class);
     private final TransactionManager transactionManager = Mockito.mock(TransactionManager.class);
-
     private final PayInterestInteractor payInterestService = new PayInterestInteractor(this.bankAccountLocker,
             this.bankAccountRepository, this.transactionManager);
 
@@ -86,5 +85,4 @@ public class PayInterestInteractorTest {
         then(this.transactionManager).should().beginTransaction();
         then(this.transactionManager).should().rollbackTransaction();
     }
-
 }

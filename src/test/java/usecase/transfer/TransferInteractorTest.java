@@ -24,7 +24,6 @@ public class TransferInteractorTest {
             .mock(BankAccountRepository.class);
     private final BankAccountLocker bankAccountLocker = Mockito.mock(BankAccountLocker.class);
     private final TransactionManager transactionManager = Mockito.mock(TransactionManager.class);
-
     private final TransferInteractor transferService = new TransferInteractor(this.bankAccountLocker,
             this.bankAccountRepository, this.transactionManager);
 

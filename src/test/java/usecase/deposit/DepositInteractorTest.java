@@ -22,7 +22,6 @@ public class DepositInteractorTest {
     private final BankAccountRepository<BankAccount> bankAccountRepository = Mockito.mock(BankAccountRepository.class);
     private final BankAccountLocker bankAccountLocker = Mockito.mock(BankAccountLocker.class);
     private final TransactionManager transactionManager = Mockito.mock(TransactionManager.class);
-
     private final DepositInteractor depositService = new DepositInteractor(this.bankAccountLocker,
             this.bankAccountRepository, this.transactionManager);
 
