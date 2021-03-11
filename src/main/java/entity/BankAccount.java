@@ -5,20 +5,23 @@ import java.math.BigDecimal;
 public abstract class BankAccount {
     private final Long accountID;
     private final Owner owner;
-    protected BigDecimal balance = BigDecimal.ZERO;
+    private BigDecimal balance = BigDecimal.ZERO;
 
     public BankAccount(final Long accountID, final Owner owner) {
-        super();
         this.accountID = accountID;
         this.owner = owner;
         this.balance = BigDecimal.ZERO;
     }
 
     public void deposit(final BigDecimal amount) {
-        if (amount.compareTo(BigDecimal.ZERO) < 0) {
+        if (this.isNegativeAmount(amount)) {
             throw new IllegalArgumentException("Attempt to deposit a negative amount in bank account occurred");
         }
         this.balance = this.balance.add(amount);
+    }
+
+    private boolean isNegativeAmount(final BigDecimal amount) {
+        return amount.compareTo(BigDecimal.ZERO) < 0;
     }
 
     public void withdraw(final BigDecimal amount) {

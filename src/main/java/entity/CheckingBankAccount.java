@@ -12,7 +12,7 @@ public class CheckingBankAccount extends BankAccount {
 
     @Override
     public boolean mayWithdraw(final BigDecimal amount) {
-        return this.balance.subtract(amount).add(this.balanceOverdraftLimit).compareTo(BigDecimal.ZERO) >= 0;
+        return this.getBalance().subtract(amount).add(this.balanceOverdraftLimit).compareTo(BigDecimal.ZERO) >= 0;
     }
 
     @Override

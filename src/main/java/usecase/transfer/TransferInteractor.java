@@ -41,8 +41,7 @@ public class TransferInteractor implements TransferUseCase {
         final CheckingBankAccount originBankAccount = getBankAccount(originAccountID);
         final CheckingBankAccount destinationBankAccount = getBankAccount(destinationAccountID);
 
-        this.lockBankAccount(Math.min(originAccountID, destinationAccountID));
-        this.lockBankAccount(Math.max(originAccountID, destinationAccountID));
+        this.lockBankAccounts(originAccountID, destinationAccountID);
         try {
             if (!originBankAccount.mayWithdraw(amount)) {
                 throw new InsufficientFundsException(originAccountID);
@@ -53,8 +52,7 @@ public class TransferInteractor implements TransferUseCase {
             this.bankAccountRepository.save(destinationBankAccount);
             this.transactionManager.commitTransaction();
         } finally {
-            this.unlockBankAccount(Math.max(originAccountID, destinationAccountID));
-            this.unlockBankAccount(Math.min(originAccountID, destinationAccountID));
+            this.unlockBankAccounts(originAccountID, destinationAccountID);
         }
     }
 
@@ -63,8 +61,18 @@ public class TransferInteractor implements TransferUseCase {
                 .orElseThrow(() -> new BankAccountNotFoundException(originAccountID));
     }
 
+    private void lockBankAccounts(final Long originAccountID, final Long destinationAccountID) {
+        this.lockBankAccount(Math.min(originAccountID, destinationAccountID));
+        this.lockBankAccount(Math.max(originAccountID, destinationAccountID));
+    }
+
     private void lockBankAccount(final Long accountID) {
         this.accountLocker.lockBankAccountByID(accountID);
+    }
+
+    private void unlockBankAccounts(final Long originAccountID, final Long destinationAccountID) {
+        this.unlockBankAccount(Math.max(originAccountID, destinationAccountID));
+        this.unlockBankAccount(Math.min(originAccountID, destinationAccountID));
     }
 
     private void unlockBankAccount(final Long accountID) {

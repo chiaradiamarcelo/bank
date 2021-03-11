@@ -12,12 +12,12 @@ public class SavingsBankAccount extends BankAccount {
 
     @Override
     public boolean mayWithdraw(final BigDecimal amount) {
-        return this.balance.compareTo(amount) >= 0;
+        return this.getBalance().compareTo(amount) >= 0;
     }
 
     public BigDecimal calculateInterest() {
         // interestRate * balance / 100
-        return BigDecimal.valueOf(this.interestRate).multiply(this.balance).divide(BigDecimal.valueOf(100));
+        return BigDecimal.valueOf(this.interestRate).multiply(this.getBalance()).divide(BigDecimal.valueOf(100));
     }
 
     @Override
