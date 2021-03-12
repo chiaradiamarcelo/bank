@@ -2,7 +2,6 @@ package usecase.payinterest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
@@ -43,7 +42,7 @@ class PayInterestInteractorTest {
 
         then(this.transactionManager).should().beginTransaction();
         then(this.bankAccountLocker).should().lockBankAccountByID(accountID);
-        then(this.bankAccountRepository).should().save(eq(bankAccount));
+        then(this.bankAccountRepository).should().save(bankAccount);
         then(this.bankAccountLocker).should().unlockBankAccountByID(accountID);
         then(this.transactionManager).should().commitTransaction();
 
@@ -67,7 +66,7 @@ class PayInterestInteractorTest {
 
         then(this.bankAccountLocker).should().lockBankAccountByID(accountID);
         then(this.bankAccountLocker).should().unlockBankAccountByID(accountID);
-        then(this.bankAccountRepository).should().save(eq(bankAccount));
+        then(this.bankAccountRepository).should().save(bankAccount);
         then(this.transactionManager).should().beginTransaction();
         then(this.transactionManager).should().commitTransaction();
 

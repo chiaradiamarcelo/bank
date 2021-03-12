@@ -35,7 +35,6 @@ class SavingsBankAccountTest {
         final SavingsBankAccount bankAccount = this.getBankAccountWithInterestRate(10L);
         final BigDecimal depositAmount = BigDecimal.valueOf(100);
         bankAccount.deposit(depositAmount);
-        assertEquals(bankAccount.getBalance(), depositAmount);
         final BigDecimal interest = calculateInterestFor(interestRate, bankAccount, depositAmount);
         assertEquals(bankAccount.calculateInterest(), interest);
     }

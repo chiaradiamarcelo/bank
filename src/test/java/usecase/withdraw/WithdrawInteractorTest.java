@@ -2,7 +2,6 @@ package usecase.withdraw;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
@@ -41,8 +40,8 @@ class WithdrawInteractorTest {
 
         this.withdrawService.withdraw(accountID, amount);
 
-        then(this.bankAccountLocker).should().lockBankAccountByID(eq(accountID));
-        then(this.bankAccountLocker).should().unlockBankAccountByID(eq(accountID));
+        then(this.bankAccountLocker).should().lockBankAccountByID(accountID);
+        then(this.bankAccountLocker).should().unlockBankAccountByID(accountID);
         then(this.bankAccountRepository).should().save(bankAccount);
         then(this.transactionManager).should().beginTransaction();
         then(this.transactionManager).should().commitTransaction();

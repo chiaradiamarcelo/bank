@@ -52,11 +52,9 @@ class BankAccountTest {
     @Test
     void withdrawWithEnoughFunds() throws InsufficientFundsException {
         final BigDecimal amount = BigDecimal.valueOf(100);
-        this.bankAccount.deposit(amount);
-        assertEquals(this.bankAccount.getBalance(), amount);
         given(this.bankAccount.mayWithdraw(amount)).willReturn(true);
         this.bankAccount.withdraw(amount);
-        assertEquals(BigDecimal.ZERO, this.bankAccount.getBalance());
+        assertEquals(amount.negate(), this.bankAccount.getBalance());
     }
 
     @Test

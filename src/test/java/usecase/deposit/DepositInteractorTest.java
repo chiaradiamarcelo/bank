@@ -39,7 +39,7 @@ class DepositInteractorTest {
         this.depositService.deposit(accountID, amount);
 
         then(this.bankAccountLocker).should().lockBankAccountByID(eq(accountID));
-        then(this.bankAccountRepository).should().save(eq(bankAccount));
+        then(this.bankAccountRepository).should().save(bankAccount);
         then(this.bankAccountLocker).should().unlockBankAccountByID(eq(accountID));
         then(this.transactionManager).should().beginTransaction();
         then(this.transactionManager).should().commitTransaction();
