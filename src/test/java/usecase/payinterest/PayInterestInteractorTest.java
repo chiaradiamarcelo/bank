@@ -17,7 +17,7 @@ import entity.SavingsBankAccount;
 import gateway.*;
 import usecase.exception.BankAccountNotFoundException;
 
-public class PayInterestInteractorTest {
+class PayInterestInteractorTest {
     @SuppressWarnings("unchecked")
     private final BankAccountRepository<SavingsBankAccount> bankAccountRepository = Mockito
             .mock(BankAccountRepository.class);
@@ -35,21 +35,21 @@ public class PayInterestInteractorTest {
         final SavingsBankAccount bankAccount = new SavingsBankAccount(accountID, new Owner(1L, "Marcelo", "Chiaradia"),
                 interestRate);
         bankAccount.deposit(amount);
-        assertEquals(bankAccount.getBalance(), amount);
+        assertEquals(amount, bankAccount.getBalance());
 
-        given(this.bankAccountRepository.getByAccountID(eq(accountID))).willReturn(Optional.of(bankAccount));
+        given(this.bankAccountRepository.getByAccountID(accountID)).willReturn(Optional.of(bankAccount));
 
         this.payInterestService.payInterest(accountID);
 
         then(this.transactionManager).should().beginTransaction();
-        then(this.bankAccountLocker).should().lockBankAccountByID(eq(accountID));
+        then(this.bankAccountLocker).should().lockBankAccountByID(accountID);
         then(this.bankAccountRepository).should().save(eq(bankAccount));
-        then(this.bankAccountLocker).should().unlockBankAccountByID(eq(accountID));
+        then(this.bankAccountLocker).should().unlockBankAccountByID(accountID);
         then(this.transactionManager).should().commitTransaction();
 
         // interestRate * balance / 100
         final BigDecimal interest = BigDecimal.valueOf(interestRate).multiply(amount).divide(BigDecimal.valueOf(100));
-        assertEquals(bankAccount.getBalance(), amount.add(interest));
+        assertEquals(amount.add(interest), bankAccount.getBalance());
     }
 
     @Test
@@ -59,26 +59,26 @@ public class PayInterestInteractorTest {
 
         final SavingsBankAccount bankAccount = new SavingsBankAccount(accountID, new Owner(1L, "Marcelo", "Chiaradia"),
                 interestRate);
-        assertEquals(bankAccount.getBalance(), BigDecimal.ZERO);
+        assertEquals(BigDecimal.ZERO, bankAccount.getBalance());
 
-        given(this.bankAccountRepository.getByAccountID(eq(accountID))).willReturn(Optional.of(bankAccount));
+        given(this.bankAccountRepository.getByAccountID(accountID)).willReturn(Optional.of(bankAccount));
 
         this.payInterestService.payInterest(accountID);
 
-        then(this.bankAccountLocker).should().lockBankAccountByID(eq(accountID));
-        then(this.bankAccountLocker).should().unlockBankAccountByID(eq(accountID));
+        then(this.bankAccountLocker).should().lockBankAccountByID(accountID);
+        then(this.bankAccountLocker).should().unlockBankAccountByID(accountID);
         then(this.bankAccountRepository).should().save(eq(bankAccount));
         then(this.transactionManager).should().beginTransaction();
         then(this.transactionManager).should().commitTransaction();
 
-        assertEquals(bankAccount.getBalance(), BigDecimal.ZERO);
+        assertEquals(BigDecimal.ZERO, bankAccount.getBalance());
     }
 
     @Test
     void payInterestBankAccountNotFound() {
         final long accountID = 1L;
 
-        given(this.bankAccountRepository.getByAccountID(eq(accountID))).willReturn(Optional.empty());
+        given(this.bankAccountRepository.getByAccountID(accountID)).willReturn(Optional.empty());
 
         assertThrows(BankAccountNotFoundException.class, () -> this.payInterestService.payInterest(accountID));
 

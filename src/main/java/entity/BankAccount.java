@@ -7,7 +7,7 @@ public abstract class BankAccount {
     private final Owner owner;
     private BigDecimal balance = BigDecimal.ZERO;
 
-    public BankAccount(final Long accountID, final Owner owner) {
+    protected BankAccount(final Long accountID, final Owner owner) {
         this.accountID = accountID;
         this.owner = owner;
         this.balance = BigDecimal.ZERO;

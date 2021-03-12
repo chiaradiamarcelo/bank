@@ -6,11 +6,11 @@ import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
 
-public class CheckingBankAccountTest {
+class CheckingBankAccountTest {
     @Test
     void mayWithdrawalWithInsufficientFunds() {
         final CheckingBankAccount bankAccount = this.getBankAccount();
-        assertEquals(bankAccount.getBalance(), BigDecimal.ZERO);
+        assertEquals(BigDecimal.ZERO, bankAccount.getBalance());
         assertFalse(bankAccount.mayWithdraw(BigDecimal.valueOf(100)));
     }
 
@@ -35,7 +35,7 @@ public class CheckingBankAccountTest {
     void mayWithdrawalWithNoBalanceAndBalanceOverdraftAllowed() throws InsufficientFundsException {
         final BigDecimal overdraftLimit = BigDecimal.valueOf(100);
         final CheckingBankAccount bankAccount = this.getBankAccountWithOverdraftLimit(overdraftLimit);
-        assertEquals(bankAccount.getBalance(), BigDecimal.ZERO);
+        assertEquals(BigDecimal.ZERO, bankAccount.getBalance());
         assertTrue(bankAccount.mayWithdraw(overdraftLimit));
     }
 }

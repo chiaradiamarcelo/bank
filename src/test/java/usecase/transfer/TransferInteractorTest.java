@@ -2,7 +2,6 @@ package usecase.transfer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
@@ -18,7 +17,7 @@ import gateway.*;
 import usecase.exception.BankAccountNotFoundException;
 import usecase.exception.InsufficientFundsException;
 
-public class TransferInteractorTest {
+class TransferInteractorTest {
     @SuppressWarnings("unchecked")
     private final BankAccountRepository<CheckingBankAccount> bankAccountRepository = Mockito
             .mock(BankAccountRepository.class);
@@ -37,30 +36,29 @@ public class TransferInteractorTest {
         final CheckingBankAccount originBankAccount = new CheckingBankAccount(originAccountID,
                 new Owner(1L, "Marcelo", "Chiaradia"), BigDecimal.valueOf(0));
         originBankAccount.deposit(amount);
-        assertEquals(originBankAccount.getBalance(), amount);
+        assertEquals(amount, originBankAccount.getBalance());
 
         final CheckingBankAccount destinationBankAccount = new CheckingBankAccount(destinationAccountID,
                 new Owner(2L, "Jhon", "Doe"), BigDecimal.valueOf(0));
-        assertEquals(destinationBankAccount.getBalance(), BigDecimal.ZERO);
+        assertEquals(BigDecimal.ZERO, destinationBankAccount.getBalance());
 
-        given(this.bankAccountRepository.getByAccountID(eq(originAccountID)))
-                .willReturn(Optional.of(originBankAccount));
-        given(this.bankAccountRepository.getByAccountID(eq(destinationAccountID)))
+        given(this.bankAccountRepository.getByAccountID(originAccountID)).willReturn(Optional.of(originBankAccount));
+        given(this.bankAccountRepository.getByAccountID(destinationAccountID))
                 .willReturn(Optional.of(destinationBankAccount));
 
         this.transferService.transfer(originAccountID, destinationAccountID, amount);
 
-        then(this.bankAccountLocker).should().lockBankAccountByID(eq(originAccountID));
-        then(this.bankAccountLocker).should().unlockBankAccountByID(eq(originAccountID));
-        then(this.bankAccountLocker).should().lockBankAccountByID(eq(destinationAccountID));
-        then(this.bankAccountLocker).should().unlockBankAccountByID(eq(destinationAccountID));
-        then(this.bankAccountRepository).should().save(eq(originBankAccount));
-        then(this.bankAccountRepository).should().save(eq(destinationBankAccount));
+        then(this.bankAccountLocker).should().lockBankAccountByID(originAccountID);
+        then(this.bankAccountLocker).should().unlockBankAccountByID(originAccountID);
+        then(this.bankAccountLocker).should().lockBankAccountByID(destinationAccountID);
+        then(this.bankAccountLocker).should().unlockBankAccountByID(destinationAccountID);
+        then(this.bankAccountRepository).should().save(originBankAccount);
+        then(this.bankAccountRepository).should().save(destinationBankAccount);
         then(this.transactionManager).should().beginTransaction();
         then(this.transactionManager).should().commitTransaction();
 
-        assertEquals(originBankAccount.getBalance(), BigDecimal.ZERO);
-        assertEquals(destinationBankAccount.getBalance(), amount);
+        assertEquals(BigDecimal.ZERO, originBankAccount.getBalance());
+        assertEquals(amount, destinationBankAccount.getBalance());
     }
 
     @Test
@@ -71,29 +69,28 @@ public class TransferInteractorTest {
 
         final CheckingBankAccount originBankAccount = new CheckingBankAccount(originAccountID,
                 new Owner(1L, "Marcelo", "Chiaradia"), BigDecimal.valueOf(0));
-        assertEquals(originBankAccount.getBalance(), BigDecimal.ZERO);
+        assertEquals(BigDecimal.ZERO, originBankAccount.getBalance());
 
         final CheckingBankAccount destinationBankAccount = new CheckingBankAccount(destinationAccountID,
                 new Owner(2L, "Jhon", "Doe"), BigDecimal.valueOf(0));
-        assertEquals(destinationBankAccount.getBalance(), BigDecimal.ZERO);
+        assertEquals(BigDecimal.ZERO, destinationBankAccount.getBalance());
 
-        given(this.bankAccountRepository.getByAccountID(eq(originAccountID)))
-                .willReturn(Optional.of(originBankAccount));
-        given(this.bankAccountRepository.getByAccountID(eq(destinationAccountID)))
+        given(this.bankAccountRepository.getByAccountID(originAccountID)).willReturn(Optional.of(originBankAccount));
+        given(this.bankAccountRepository.getByAccountID(destinationAccountID))
                 .willReturn(Optional.of(destinationBankAccount));
 
         assertThrows(InsufficientFundsException.class,
                 () -> this.transferService.transfer(originAccountID, destinationAccountID, amount));
 
-        then(this.bankAccountLocker).should().lockBankAccountByID(eq(originAccountID));
-        then(this.bankAccountLocker).should().unlockBankAccountByID(eq(originAccountID));
-        then(this.bankAccountLocker).should().lockBankAccountByID(eq(destinationAccountID));
-        then(this.bankAccountLocker).should().unlockBankAccountByID(eq(destinationAccountID));
+        then(this.bankAccountLocker).should().lockBankAccountByID(originAccountID);
+        then(this.bankAccountLocker).should().unlockBankAccountByID(originAccountID);
+        then(this.bankAccountLocker).should().lockBankAccountByID(destinationAccountID);
+        then(this.bankAccountLocker).should().unlockBankAccountByID(destinationAccountID);
         then(this.transactionManager).should().beginTransaction();
         then(this.transactionManager).should().rollbackTransaction();
 
-        assertEquals(originBankAccount.getBalance(), BigDecimal.ZERO);
-        assertEquals(destinationBankAccount.getBalance(), BigDecimal.ZERO);
+        assertEquals(BigDecimal.ZERO, originBankAccount.getBalance());
+        assertEquals(BigDecimal.ZERO, destinationBankAccount.getBalance());
     }
 
     @Test
@@ -102,7 +99,7 @@ public class TransferInteractorTest {
         final long destinationAccountID = 2L;
         final BigDecimal amount = BigDecimal.valueOf(100);
 
-        given(this.bankAccountRepository.getByAccountID(eq(originAccountID))).willReturn(Optional.empty());
+        given(this.bankAccountRepository.getByAccountID(originAccountID)).willReturn(Optional.empty());
 
         assertThrows(BankAccountNotFoundException.class,
                 () -> this.transferService.transfer(originAccountID, destinationAccountID, amount));
@@ -120,9 +117,8 @@ public class TransferInteractorTest {
         final CheckingBankAccount originBankAccount = new CheckingBankAccount(originAccountID,
                 new Owner(1L, "Marcelo", "Chiaradia"), BigDecimal.valueOf(0));
 
-        given(this.bankAccountRepository.getByAccountID(eq(originAccountID)))
-                .willReturn(Optional.of(originBankAccount));
-        given(this.bankAccountRepository.getByAccountID(eq(destinationAccountID))).willReturn(Optional.empty());
+        given(this.bankAccountRepository.getByAccountID(originAccountID)).willReturn(Optional.of(originBankAccount));
+        given(this.bankAccountRepository.getByAccountID(destinationAccountID)).willReturn(Optional.empty());
 
         assertThrows(BankAccountNotFoundException.class,
                 () -> this.transferService.transfer(originAccountID, destinationAccountID, amount));

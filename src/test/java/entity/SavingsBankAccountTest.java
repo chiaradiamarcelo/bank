@@ -6,12 +6,12 @@ import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
 
-public class SavingsBankAccountTest {
+class SavingsBankAccountTest {
     @Test
     void calculateInterestWithNoInterestRateAndNoBalance() {
         final SavingsBankAccount bankAccount = this.getBankAccount();
-        assertEquals(bankAccount.getBalance(), BigDecimal.ZERO);
-        assertEquals(bankAccount.calculateInterest(), BigDecimal.ZERO);
+        assertEquals(BigDecimal.ZERO, bankAccount.getBalance());
+        assertEquals(BigDecimal.ZERO, bankAccount.calculateInterest());
     }
 
     private SavingsBankAccount getBankAccount() {
@@ -25,8 +25,8 @@ public class SavingsBankAccountTest {
     @Test
     void calculateInterestWithNoBalanceAndPositiveInterestRate() {
         final SavingsBankAccount bankAccount = this.getBankAccountWithInterestRate(10L);
-        assertEquals(bankAccount.getBalance(), BigDecimal.ZERO);
-        assertEquals(bankAccount.calculateInterest(), BigDecimal.ZERO);
+        assertEquals(BigDecimal.ZERO, bankAccount.getBalance());
+        assertEquals(BigDecimal.ZERO, bankAccount.calculateInterest());
     }
 
     @Test
@@ -48,7 +48,7 @@ public class SavingsBankAccountTest {
     @Test
     void mayWithdrawalWithInsufficientFunds() {
         final SavingsBankAccount bankAccount = this.getBankAccount();
-        assertEquals(bankAccount.getBalance(), BigDecimal.ZERO);
+        assertEquals(BigDecimal.ZERO, bankAccount.getBalance());
         assertFalse(bankAccount.mayWithdraw(BigDecimal.valueOf(100)));
     }
 

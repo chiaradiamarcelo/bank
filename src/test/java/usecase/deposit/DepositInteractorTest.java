@@ -17,7 +17,7 @@ import entity.Owner;
 import gateway.*;
 import usecase.exception.BankAccountNotFoundException;
 
-public class DepositInteractorTest {
+class DepositInteractorTest {
     @SuppressWarnings("unchecked")
     private final BankAccountRepository<BankAccount> bankAccountRepository = Mockito.mock(BankAccountRepository.class);
     private final BankAccountLocker bankAccountLocker = Mockito.mock(BankAccountLocker.class);
@@ -32,9 +32,9 @@ public class DepositInteractorTest {
         final BankAccount bankAccount = Mockito.mock(BankAccount.class,
                 Mockito.withSettings().useConstructor(accountID, new Owner(1L, "Marcelo", "Chiaradia"))
                         .defaultAnswer(Mockito.CALLS_REAL_METHODS));
-        assertEquals(bankAccount.getBalance(), BigDecimal.ZERO);
+        assertEquals(BigDecimal.ZERO, bankAccount.getBalance());
 
-        given(this.bankAccountRepository.getByAccountID(eq(accountID))).willReturn(Optional.of(bankAccount));
+        given(this.bankAccountRepository.getByAccountID(accountID)).willReturn(Optional.of(bankAccount));
 
         this.depositService.deposit(accountID, amount);
 
@@ -44,7 +44,7 @@ public class DepositInteractorTest {
         then(this.transactionManager).should().beginTransaction();
         then(this.transactionManager).should().commitTransaction();
 
-        assertEquals(bankAccount.getBalance(), amount);
+        assertEquals(amount, bankAccount.getBalance());
     }
 
     @Test
@@ -52,7 +52,7 @@ public class DepositInteractorTest {
         final long accountID = 1L;
         final BigDecimal amount = BigDecimal.valueOf(100);
 
-        given(this.bankAccountRepository.getByAccountID(eq(accountID))).willReturn(Optional.empty());
+        given(this.bankAccountRepository.getByAccountID(accountID)).willReturn(Optional.empty());
 
         assertThrows(BankAccountNotFoundException.class, () -> this.depositService.deposit(accountID, amount));
 

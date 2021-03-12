@@ -1,0 +1,20 @@
+language: java
+
+# Setting sudo to false will cause Travis to use Containers.
+# To use Docker's privileged mode, we need to enable sudo.
+sudo: required
+
+jdk:
+   - openjdk11
+
+addons:
+  sonarcloud:
+    organization: "chiaradiamarcelo"
+
+script:
+  # the following command line builds the project, runs the tests with coverage and then execute the SonarCloud analysis
+  - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar -Dsonar.projectKey=chiaradiamarcelo_bank -Dsonar.login=${SONAR_TOKEN} -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml,target/site/jacoco-it/jacoco.xml
+
+cache:
+  directories:
+    - "$HOME/.m2"

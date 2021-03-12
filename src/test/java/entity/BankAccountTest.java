@@ -2,7 +2,6 @@ package entity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 import java.math.BigDecimal;
@@ -11,7 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-public class BankAccountTest {
+class BankAccountTest {
     private BankAccount bankAccount;
 
     @BeforeEach
@@ -26,28 +25,28 @@ public class BankAccountTest {
 
     @Test
     void newBankAccountBalance() {
-        assertEquals(this.bankAccount.getBalance(), BigDecimal.ZERO);
+        assertEquals(BigDecimal.ZERO, this.bankAccount.getBalance());
     }
 
     @Test
     void depositPositiveAmount() {
         final BigDecimal depositAmount = BigDecimal.valueOf(100);
         this.bankAccount.deposit(depositAmount);
-        assertEquals(this.bankAccount.getBalance(), depositAmount);
+        assertEquals(depositAmount, this.bankAccount.getBalance());
     }
 
     @Test
     void depositNegativeAmount() {
         final BigDecimal depositAmount = BigDecimal.valueOf(-100);
         assertThrows(IllegalArgumentException.class, () -> this.bankAccount.deposit(depositAmount));
-        assertEquals(this.bankAccount.getBalance(), BigDecimal.ZERO);
+        assertEquals(BigDecimal.ZERO, this.bankAccount.getBalance());
     }
 
     @Test
     void depositCeroAmount() {
         final BigDecimal depositAmount = BigDecimal.ZERO;
         this.bankAccount.deposit(depositAmount);
-        assertEquals(this.bankAccount.getBalance(), BigDecimal.ZERO);
+        assertEquals(BigDecimal.ZERO, this.bankAccount.getBalance());
     }
 
     @Test
@@ -55,16 +54,16 @@ public class BankAccountTest {
         final BigDecimal amount = BigDecimal.valueOf(100);
         this.bankAccount.deposit(amount);
         assertEquals(this.bankAccount.getBalance(), amount);
-        given(this.bankAccount.mayWithdraw(eq(amount))).willReturn(true);
+        given(this.bankAccount.mayWithdraw(amount)).willReturn(true);
         this.bankAccount.withdraw(amount);
-        assertEquals(this.bankAccount.getBalance(), BigDecimal.ZERO);
+        assertEquals(BigDecimal.ZERO, this.bankAccount.getBalance());
     }
 
     @Test
     void withdrawalWithInsufficientFunds() {
         final BigDecimal amount = BigDecimal.valueOf(100);
-        given(this.bankAccount.mayWithdraw(eq(amount))).willReturn(false);
+        given(this.bankAccount.mayWithdraw(amount)).willReturn(false);
         assertThrows(InsufficientFundsException.class, () -> this.bankAccount.withdraw(amount));
-        assertEquals(this.bankAccount.getBalance(), BigDecimal.ZERO);
+        assertEquals(BigDecimal.ZERO, this.bankAccount.getBalance());
     }
 }
