@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 public abstract class BankAccount {
     private final Long accountID;
     private final Owner owner;
-    private BigDecimal balance = BigDecimal.ZERO;
+    private BigDecimal balance;
 
     protected BankAccount(final Long accountID, final Owner owner) {
         this.accountID = accountID;

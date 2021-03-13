@@ -34,12 +34,12 @@ class TransferInteractorTest {
         final BigDecimal amount = BigDecimal.valueOf(100);
 
         final CheckingBankAccount originBankAccount = new CheckingBankAccount(originAccountID,
-                new Owner(1L, "Marcelo", "Chiaradia"), BigDecimal.valueOf(0));
+                new Owner(1L, "Marcelo", "Chiaradia"), BigDecimal.ZERO);
         originBankAccount.deposit(amount);
         assertEquals(amount, originBankAccount.getBalance());
 
         final CheckingBankAccount destinationBankAccount = new CheckingBankAccount(destinationAccountID,
-                new Owner(2L, "Jhon", "Doe"), BigDecimal.valueOf(0));
+                new Owner(2L, "Jhon", "Doe"), BigDecimal.ZERO);
         assertEquals(BigDecimal.ZERO, destinationBankAccount.getBalance());
 
         given(this.bankAccountRepository.getByAccountID(originAccountID)).willReturn(Optional.of(originBankAccount));
@@ -54,11 +54,15 @@ class TransferInteractorTest {
         then(this.bankAccountLocker).should().unlockBankAccountByID(destinationAccountID);
         then(this.bankAccountRepository).should().save(originBankAccount);
         then(this.bankAccountRepository).should().save(destinationBankAccount);
-        then(this.transactionManager).should().beginTransaction();
-        then(this.transactionManager).should().commitTransaction();
+        assertTransactionWasCommited();
 
         assertEquals(BigDecimal.ZERO, originBankAccount.getBalance());
         assertEquals(amount, destinationBankAccount.getBalance());
+    }
+
+    private void assertTransactionWasCommited() {
+        then(this.transactionManager).should().beginTransaction();
+        then(this.transactionManager).should().commitTransaction();
     }
 
     @Test
@@ -68,11 +72,11 @@ class TransferInteractorTest {
         final BigDecimal amount = BigDecimal.valueOf(100);
 
         final CheckingBankAccount originBankAccount = new CheckingBankAccount(originAccountID,
-                new Owner(1L, "Marcelo", "Chiaradia"), BigDecimal.valueOf(0));
+                new Owner(1L, "Marcelo", "Chiaradia"), BigDecimal.ZERO);
         assertEquals(BigDecimal.ZERO, originBankAccount.getBalance());
 
         final CheckingBankAccount destinationBankAccount = new CheckingBankAccount(destinationAccountID,
-                new Owner(2L, "Jhon", "Doe"), BigDecimal.valueOf(0));
+                new Owner(2L, "Jhon", "Doe"), BigDecimal.ZERO);
         assertEquals(BigDecimal.ZERO, destinationBankAccount.getBalance());
 
         given(this.bankAccountRepository.getByAccountID(originAccountID)).willReturn(Optional.of(originBankAccount));
@@ -86,11 +90,15 @@ class TransferInteractorTest {
         then(this.bankAccountLocker).should().unlockBankAccountByID(originAccountID);
         then(this.bankAccountLocker).should().lockBankAccountByID(destinationAccountID);
         then(this.bankAccountLocker).should().unlockBankAccountByID(destinationAccountID);
-        then(this.transactionManager).should().beginTransaction();
-        then(this.transactionManager).should().rollbackTransaction();
+        assertTransactionWasRollbacked();
 
         assertEquals(BigDecimal.ZERO, originBankAccount.getBalance());
         assertEquals(BigDecimal.ZERO, destinationBankAccount.getBalance());
+    }
+
+    private void assertTransactionWasRollbacked() {
+        then(this.transactionManager).should().beginTransaction();
+        then(this.transactionManager).should().rollbackTransaction();
     }
 
     @Test
@@ -104,8 +112,7 @@ class TransferInteractorTest {
         assertThrows(BankAccountNotFoundException.class,
                 () -> this.transferService.transfer(originAccountID, destinationAccountID, amount));
 
-        then(this.transactionManager).should().beginTransaction();
-        then(this.transactionManager).should().rollbackTransaction();
+        assertTransactionWasRollbacked();
     }
 
     @Test
@@ -115,7 +122,7 @@ class TransferInteractorTest {
         final BigDecimal amount = BigDecimal.valueOf(100);
 
         final CheckingBankAccount originBankAccount = new CheckingBankAccount(originAccountID,
-                new Owner(1L, "Marcelo", "Chiaradia"), BigDecimal.valueOf(0));
+                new Owner(1L, "Marcelo", "Chiaradia"), BigDecimal.ZERO);
 
         given(this.bankAccountRepository.getByAccountID(originAccountID)).willReturn(Optional.of(originBankAccount));
         given(this.bankAccountRepository.getByAccountID(destinationAccountID)).willReturn(Optional.empty());
@@ -123,8 +130,6 @@ class TransferInteractorTest {
         assertThrows(BankAccountNotFoundException.class,
                 () -> this.transferService.transfer(originAccountID, destinationAccountID, amount));
 
-        then(this.transactionManager).should().beginTransaction();
-        then(this.transactionManager).should().rollbackTransaction();
+        assertTransactionWasRollbacked();
     }
-
 }

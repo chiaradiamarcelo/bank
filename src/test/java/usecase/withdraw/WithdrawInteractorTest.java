@@ -29,9 +29,7 @@ class WithdrawInteractorTest {
     void withdrawWithPositiveBalanceInBankAccount() throws BankAccountNotFoundException, InsufficientFundsException {
         final long accountID = 1L;
         final BigDecimal amount = BigDecimal.valueOf(100);
-        final BankAccount bankAccount = Mockito.mock(BankAccount.class,
-                Mockito.withSettings().useConstructor(accountID, new Owner(1L, "Marcelo", "Chiaradia"))
-                        .defaultAnswer(Mockito.CALLS_REAL_METHODS));
+        final BankAccount bankAccount = this.getbankAccountWith(accountID);
         bankAccount.deposit(amount);
         assertEquals(amount, bankAccount.getBalance());
 
@@ -43,19 +41,27 @@ class WithdrawInteractorTest {
         then(this.bankAccountLocker).should().lockBankAccountByID(accountID);
         then(this.bankAccountLocker).should().unlockBankAccountByID(accountID);
         then(this.bankAccountRepository).should().save(bankAccount);
-        then(this.transactionManager).should().beginTransaction();
-        then(this.transactionManager).should().commitTransaction();
+        assertTransactionWasCommited();
 
         assertEquals(BigDecimal.ZERO, bankAccount.getBalance());
+    }
+
+    private void assertTransactionWasCommited() {
+        then(this.transactionManager).should().beginTransaction();
+        then(this.transactionManager).should().commitTransaction();
+    }
+
+    private BankAccount getbankAccountWith(final long accountID) {
+        return Mockito.mock(BankAccount.class,
+                Mockito.withSettings().useConstructor(accountID, new Owner(1L, "Marcelo", "Chiaradia"))
+                        .defaultAnswer(Mockito.CALLS_REAL_METHODS));
     }
 
     @Test
     void withdrawInsufficientFundsInBankAccount() throws BankAccountNotFoundException {
         final long accountID = 1L;
         final BigDecimal amount = BigDecimal.valueOf(100);
-        final BankAccount bankAccount = Mockito.mock(BankAccount.class,
-                Mockito.withSettings().useConstructor(accountID, new Owner(1L, "Marcelo", "Chiaradia"))
-                        .defaultAnswer(Mockito.CALLS_REAL_METHODS));
+        final BankAccount bankAccount = this.getbankAccountWith(accountID);
         assertEquals(BigDecimal.ZERO, bankAccount.getBalance());
 
         given(this.bankAccountRepository.getByAccountID(accountID)).willReturn(Optional.of(bankAccount));
@@ -65,8 +71,7 @@ class WithdrawInteractorTest {
 
         then(this.bankAccountLocker).should().lockBankAccountByID(accountID);
         then(this.bankAccountLocker).should().unlockBankAccountByID(accountID);
-        then(this.transactionManager).should().beginTransaction();
-        then(this.transactionManager).should().rollbackTransaction();
+        assertTransactionWasRollbacked();
 
         assertEquals(BigDecimal.ZERO, bankAccount.getBalance());
     }
@@ -79,7 +84,10 @@ class WithdrawInteractorTest {
         given(this.bankAccountRepository.getByAccountID(accountID)).willReturn(Optional.empty());
 
         assertThrows(BankAccountNotFoundException.class, () -> this.withdrawService.withdraw(accountID, depositAmount));
+        assertTransactionWasRollbacked();
+    }
 
+    private void assertTransactionWasRollbacked() {
         then(this.transactionManager).should().beginTransaction();
         then(this.transactionManager).should().rollbackTransaction();
     }

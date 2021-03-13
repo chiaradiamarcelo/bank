@@ -30,9 +30,7 @@ class PayInterestInteractorTest {
         final long accountID = 1L;
         final long interestRate = 10L;
         final BigDecimal amount = BigDecimal.valueOf(100);
-
-        final SavingsBankAccount bankAccount = new SavingsBankAccount(accountID, new Owner(1L, "Marcelo", "Chiaradia"),
-                interestRate);
+        final SavingsBankAccount bankAccount = this.getSavingsBankAccountWith(accountID, interestRate);
         bankAccount.deposit(amount);
         assertEquals(amount, bankAccount.getBalance());
 
@@ -40,25 +38,30 @@ class PayInterestInteractorTest {
 
         this.payInterestService.payInterest(accountID);
 
-        then(this.transactionManager).should().beginTransaction();
         then(this.bankAccountLocker).should().lockBankAccountByID(accountID);
-        then(this.bankAccountRepository).should().save(bankAccount);
         then(this.bankAccountLocker).should().unlockBankAccountByID(accountID);
-        then(this.transactionManager).should().commitTransaction();
+        then(this.bankAccountRepository).should().save(bankAccount);
+        assertTransactionWasCommited();
 
         // interestRate * balance / 100
         final BigDecimal interest = BigDecimal.valueOf(interestRate).multiply(amount).divide(BigDecimal.valueOf(100));
         assertEquals(amount.add(interest), bankAccount.getBalance());
     }
 
+    private void assertTransactionWasCommited() {
+        then(this.transactionManager).should().beginTransaction();
+        then(this.transactionManager).should().commitTransaction();
+    }
+
+    private SavingsBankAccount getSavingsBankAccountWith(final long accountID, final long interestRate) {
+        return new SavingsBankAccount(accountID, new Owner(1L, "Marcelo", "Chiaradia"), interestRate);
+    }
+
     @Test
     void payInterestWithNoBalanceInBankAccount() throws BankAccountNotFoundException {
         final long accountID = 1L;
         final long interestRate = 10L;
-
-        final SavingsBankAccount bankAccount = new SavingsBankAccount(accountID, new Owner(1L, "Marcelo", "Chiaradia"),
-                interestRate);
-        assertEquals(BigDecimal.ZERO, bankAccount.getBalance());
+        final SavingsBankAccount bankAccount = getSavingsBankAccountWith(accountID, interestRate);
 
         given(this.bankAccountRepository.getByAccountID(accountID)).willReturn(Optional.of(bankAccount));
 
@@ -67,20 +70,22 @@ class PayInterestInteractorTest {
         then(this.bankAccountLocker).should().lockBankAccountByID(accountID);
         then(this.bankAccountLocker).should().unlockBankAccountByID(accountID);
         then(this.bankAccountRepository).should().save(bankAccount);
-        then(this.transactionManager).should().beginTransaction();
-        then(this.transactionManager).should().commitTransaction();
+        assertTransactionWasCommited();
 
         assertEquals(BigDecimal.ZERO, bankAccount.getBalance());
     }
 
     @Test
-    void payInterestBankAccountNotFound() {
+    void payInterestWithBankAccountNotFound() {
         final long accountID = 1L;
 
         given(this.bankAccountRepository.getByAccountID(accountID)).willReturn(Optional.empty());
 
         assertThrows(BankAccountNotFoundException.class, () -> this.payInterestService.payInterest(accountID));
+        assertTransactionWasRollbacked();
+    }
 
+    private void assertTransactionWasRollbacked() {
         then(this.transactionManager).should().beginTransaction();
         then(this.transactionManager).should().rollbackTransaction();
     }

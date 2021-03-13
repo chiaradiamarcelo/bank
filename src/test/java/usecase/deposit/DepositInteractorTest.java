@@ -29,9 +29,7 @@ class DepositInteractorTest {
     void deposit() throws BankAccountNotFoundException {
         final long accountID = 1L;
         final BigDecimal amount = BigDecimal.valueOf(100);
-        final BankAccount bankAccount = Mockito.mock(BankAccount.class,
-                Mockito.withSettings().useConstructor(accountID, new Owner(1L, "Marcelo", "Chiaradia"))
-                        .defaultAnswer(Mockito.CALLS_REAL_METHODS));
+        final BankAccount bankAccount = this.getBankAccountWith(accountID);
         assertEquals(BigDecimal.ZERO, bankAccount.getBalance());
 
         given(this.bankAccountRepository.getByAccountID(accountID)).willReturn(Optional.of(bankAccount));
@@ -39,12 +37,21 @@ class DepositInteractorTest {
         this.depositService.deposit(accountID, amount);
 
         then(this.bankAccountLocker).should().lockBankAccountByID(eq(accountID));
-        then(this.bankAccountRepository).should().save(bankAccount);
         then(this.bankAccountLocker).should().unlockBankAccountByID(eq(accountID));
+        then(this.bankAccountRepository).should().save(bankAccount);
+        assertTransactionWasCommited();
+        assertEquals(amount, bankAccount.getBalance());
+    }
+
+    private void assertTransactionWasCommited() {
         then(this.transactionManager).should().beginTransaction();
         then(this.transactionManager).should().commitTransaction();
+    }
 
-        assertEquals(amount, bankAccount.getBalance());
+    private BankAccount getBankAccountWith(final long accountID) {
+        return Mockito.mock(BankAccount.class,
+                Mockito.withSettings().useConstructor(accountID, new Owner(1L, "Marcelo", "Chiaradia"))
+                        .defaultAnswer(Mockito.CALLS_REAL_METHODS));
     }
 
     @Test
@@ -55,7 +62,10 @@ class DepositInteractorTest {
         given(this.bankAccountRepository.getByAccountID(accountID)).willReturn(Optional.empty());
 
         assertThrows(BankAccountNotFoundException.class, () -> this.depositService.deposit(accountID, amount));
+        assertTransactionWasRollbacked();
+    }
 
+    private void assertTransactionWasRollbacked() {
         then(this.transactionManager).should().beginTransaction();
         then(this.transactionManager).should().rollbackTransaction();
     }
