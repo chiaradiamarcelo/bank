@@ -21,29 +21,37 @@ public class DepositInteractor implements DepositUseCase {
 
     @Override
     public void deposit(final Long accountID, final BigDecimal amount) throws BankAccountNotFoundException {
+        final BankAccount bankAccount = this.getBankAccount(accountID);
+        this.lockBankAccount(accountID);
+        try {
+            this.executeOnTransaction(() -> this.depositTo_(bankAccount, amount));
+        } finally {
+            this.unlockBankAccount(accountID);
+        }
+    }
+
+    private void executeOnTransaction(final TransactionalTest transactional) {
         this.beginTransaction();
         try {
-            this.depositTo(accountID, amount);
+            transactional.execute();
+            this.commitTransaction();
         } catch (final Exception e) {
             this.rollbackTransaction();
             throw e;
         }
     }
 
-    private void beginTransaction() {
-        this.transactionManager.beginTransaction();
+    private void depositTo_(final BankAccount bankAccount, final BigDecimal amount) {
+        bankAccount.deposit(amount);
+        this.bankAccountRepository.save(bankAccount);
     }
 
-    private void depositTo(final Long accountID, final BigDecimal amount) throws BankAccountNotFoundException {
-        final BankAccount bankAccount = this.getBankAccount(accountID);
-        this.lockBankAccount(accountID);
-        try {
-            bankAccount.deposit(amount);
-            this.bankAccountRepository.save(bankAccount);
-            this.transactionManager.commitTransaction();
-        } finally {
-            this.unlockBankAccount(accountID);
-        }
+    private void commitTransaction() {
+        this.transactionManager.commitTransaction();
+    }
+
+    private void beginTransaction() {
+        this.transactionManager.beginTransaction();
     }
 
     private BankAccount getBankAccount(final Long accountID) throws BankAccountNotFoundException {

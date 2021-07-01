@@ -30,7 +30,6 @@ class DepositInteractorTest {
         final long accountID = 1L;
         final BigDecimal amount = BigDecimal.valueOf(100);
         final BankAccount bankAccount = this.getBankAccountWith(accountID);
-        assertEquals(BigDecimal.ZERO, bankAccount.getBalance());
 
         given(this.bankAccountRepository.getByAccountID(accountID)).willReturn(Optional.of(bankAccount));
 
@@ -62,6 +61,15 @@ class DepositInteractorTest {
         given(this.bankAccountRepository.getByAccountID(accountID)).willReturn(Optional.empty());
 
         assertThrows(BankAccountNotFoundException.class, () -> this.depositService.deposit(accountID, amount));
+    }
+
+    @Test
+    void depositNegativeAmountFails() {
+        final long accountID = 1L;
+        final BigDecimal amount = BigDecimal.valueOf(-1);
+        final BankAccount bankAccount = this.getBankAccountWith(accountID);
+        given(this.bankAccountRepository.getByAccountID(accountID)).willReturn(Optional.of(bankAccount));
+        assertThrows(IllegalArgumentException.class, () -> this.depositService.deposit(accountID, amount));
         assertTransactionWasRollbacked();
     }
 

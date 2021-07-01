@@ -11,7 +11,6 @@ class CheckingBankAccountTest {
     @Test
     void mayWithdrawalWithInsufficientFunds() {
         final CheckingBankAccount bankAccount = this.getCheckingBankAccount();
-        assertEquals(ZERO, bankAccount.getBalance());
         assertFalse(bankAccount.mayWithdraw(BigDecimal.valueOf(100)));
     }
 
@@ -36,7 +35,6 @@ class CheckingBankAccountTest {
     void mayWithdrawalWithNoBalanceAndBalanceOverdraftAllowed() throws InsufficientFundsException {
         final BigDecimal overdraftLimit = BigDecimal.valueOf(100);
         final CheckingBankAccount bankAccount = this.getCheckingBankAccountWithOverdraftLimit(overdraftLimit);
-        assertEquals(ZERO, bankAccount.getBalance());
         assertTrue(bankAccount.mayWithdraw(overdraftLimit));
     }
 }
