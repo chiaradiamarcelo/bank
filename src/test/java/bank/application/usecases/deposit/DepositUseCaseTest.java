@@ -27,12 +27,14 @@ class DepositUseCaseTest {
 
     @Test
     void should_succeed_when_bank_account_exists_and_positive_amount_provided() {
-        var bankAccount = new BankAccount(BANK_ACCOUNT_ID, ZERO_EUROS);
+        var bankAccount = mock(BankAccount.class);
         when(bankAccountRepository.accountById(eq(BANK_ACCOUNT_ID))).thenReturn(Optional.of(bankAccount));
 
         depositUseCase.deposit(new DepositRequest(BANK_ACCOUNT_ID, TEN_EUROS));
 
-        verify(bankAccountRepository, times(1)).save(eq(new BankAccount(BANK_ACCOUNT_ID, TEN_EUROS)));
+        verify(bankAccount, times(1)).deposit(eq(TEN_EUROS));
+        verify(bankAccountRepository, times(1)).accountById(eq(BANK_ACCOUNT_ID));
+        verify(bankAccountRepository, times(1)).save(eq(bankAccount));
     }
 
     @Test
@@ -42,16 +44,20 @@ class DepositUseCaseTest {
 
         assertThatThrownBy(() -> depositUseCase.deposit(new DepositRequest(NON_EXISTENT_BANK_ACCOUNT_ID, TEN_EUROS)))
                 .isInstanceOf(BankAccountNotFoundException.class);
+        verify(bankAccountRepository, times(1)).accountById(eq(NON_EXISTENT_BANK_ACCOUNT_ID));
     }
 
     @Test
     void should_fail_when_negative_amount_provided() {
-        var bankAccount = new BankAccount(BANK_ACCOUNT_ID, ZERO_EUROS);
-        when(bankAccountRepository.accountById(eq(BANK_ACCOUNT_ID))).thenReturn(Optional.of(bankAccount));
+        var bankAccount = mock(BankAccount.class);
         var invalidDepositAmount = TEN_EUROS.negate();
+        doThrow(InvalidAmountException.class).when(bankAccount).deposit(eq(invalidDepositAmount));
+        when(bankAccountRepository.accountById(eq(BANK_ACCOUNT_ID))).thenReturn(Optional.of(bankAccount));
 
         assertThatThrownBy(() -> depositUseCase.deposit(new DepositRequest(BANK_ACCOUNT_ID, invalidDepositAmount)))
                 .isInstanceOf(InvalidAmountException.class);
-        verify(bankAccountRepository, times(0)).save(eq(new BankAccount(BANK_ACCOUNT_ID, TEN_EUROS)));
+        verify(bankAccount, times(1)).deposit(eq(invalidDepositAmount));
+        verify(bankAccountRepository, times(1)).accountById(eq(BANK_ACCOUNT_ID));
+        verify(bankAccountRepository, times(0)).save(eq(bankAccount));
     }
 }
