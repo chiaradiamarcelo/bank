@@ -43,7 +43,7 @@ class JpaBankAccountRepository implements BankAccountRepository {
 @Repository
 interface CrudBankAccountRepository extends JpaRepository<BankAccountEntity, UUID> {
     @Transactional
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE bank_account SET balance = :balance WHERE id = :id")
     void updateBalance(@Param("id") UUID id, @Param("balance") BigDecimal balance);
 }
